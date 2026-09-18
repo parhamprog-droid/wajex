@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Wajex Icon Generator</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #f0f0f0;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+    }
+    .icon-wrapper {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+      color: white;
+      font-weight: bold;
+      font-family: 'Segoe UI', sans-serif;
+      letter-spacing: -2px;
+      box-shadow: 0 8px 32px rgba(108, 92, 231, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .icon::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .icon-192 {
+      width: 192px;
+      height: 192px;
+      border-radius: 40px;
+      font-size: 100px;
+    }
+    .icon-512 {
+      width: 512px;
+      height: 512px;
+      border-radius: 110px;
+      font-size: 270px;
+    }
+    .label {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #666;
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="icon-wrapper">
+    <div class="label">192 × 192</div>
+    <div class="icon icon-192">W</div>
+  </div>
+
+  <div class="icon-wrapper">
+    <div class="label">512 × 512</div>
+    <div class="icon icon-512">W</div>
+  </div>
+</body>
+</html>
