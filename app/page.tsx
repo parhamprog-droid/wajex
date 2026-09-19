@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Header from "@/components/Header";
 import TabBar, { type TabId } from "@/components/TabBar";
-import TranslatorCard from "@/components/TranslatorCard";
+import TranslatorCard, {
+  type TranslatorCardHandle,
+} from "@/components/TranslatorCard";
 import FeaturePanel from "@/components/FeaturePanel";
 import type { TranslationItem } from "@/lib/db";
 import type { Tone } from "@/lib/tone";
@@ -12,8 +14,8 @@ export default function Home() {
   const [prefill, setPrefill] = useState<TranslationItem | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("text");
   const [tone, setTone] = useState<Tone>("formal");
+  const cardRef = useRef<TranslatorCardHandle>(null);
 
-  // اطلاعات ترجمه فعلی برای پنل پایین
   const [translationData, setTranslationData] = useState({
     input: "",
     output: "",
@@ -27,11 +29,18 @@ export default function Home() {
       <Header onSelectHistory={(item) => setPrefill(item)} />
       <div className="px-6 mt-4">
         <TranslatorCard
+          ref={cardRef}
           prefill={prefill}
           activeTab={activeTab}
           tone={tone}
           onToneChange={setTone}
-          onTranslationComplete={(input, output, sourceLang, targetLang, timeMs) => {
+          onTranslationComplete={(
+            input,
+            output,
+            sourceLang,
+            targetLang,
+            timeMs
+          ) => {
             setTranslationData({
               input,
               output,

@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mic,
@@ -39,6 +45,11 @@ type SpeechRecognitionType = {
   onresult: ((event: any) => void) | null;
   onerror: ((event: any) => void) | null;
   onend: (() => void) | null;
+};
+
+export type TranslatorCardHandle = {
+  clear: () => void;
+  save: () => void;
 };
 
 async function translateLongText(
@@ -102,25 +113,31 @@ function detectByCharacters(text: string): string | null {
   return null;
 }
 
-export default function TranslatorCard({
-  prefill,
-  activeTab,
-  onToneChange,
-  tone,
-  onTranslationComplete,
-}: {
-  prefill?: TranslationItem | null;
-  activeTab: TabId;
-  onToneChange: (tone: Tone) => void;
-  tone: Tone;
-  onTranslationComplete?: (
-    input: string,
-    output: string,
-    sourceLang: string,
-    targetLang: string,
-    translationTimeMs: number
-  ) => void;
-}) {
+const TranslatorCard = forwardRef<
+  TranslatorCardHandle,
+  {
+    prefill?: TranslationItem | null;
+    activeTab: TabId;
+    tone: Tone;
+    onToneChange: (tone: Tone) => void;
+    onTranslationComplete?: (
+      input: string,
+      output: string,
+      sourceLang: string,
+      targetLang: string,
+      translationTimeMs: number
+    ) => void;
+  }
+>(function TranslatorCard(
+  {
+    prefill,
+    activeTab,
+    tone,
+    onToneChange,
+    onTranslationComplete,
+  },
+  ref
+) {
   const [sourceLang, setSourceLang] = useState(prefill?.sourceLang ?? "fa");
   const [targetLang, setTargetLang] = useState(prefill?.targetLang ?? "en");
   const [input, setInput] = useState(prefill?.input ?? "");
@@ -146,12 +163,29 @@ export default function TranslatorCard({
   const detectTimerRef = useRef<NodeJS.Timeout | null>(null);
   const toneRef = useRef<Tone>(tone);
 
-  // ذخیره tone توی ref برای دسترسی توی doTranslate
   useEffect(() => {
     toneRef.current = tone;
   }, [tone]);
 
-  // تشخیص خودکار زبان
+  useImperativeHandle(ref, () => ({
+    clear: () => {
+      setInput("");
+      setOutput("");
+      setIsSaved(false);
+      lastSavedRef.current = "";
+    },
+    save: async () => {
+      if (!input.trim() || !output || output.startsWith("❌")) return;
+      await addTranslation({
+        sourceLang,
+        targetLang,
+        input: input.trim(),
+        output,
+      });
+      setIsSaved(true);
+    },
+  }));
+
   useEffect(() => {
     if (!autoDetect || !input.trim() || input.length < 3) {
       setDetectedLang(null);
@@ -173,7 +207,6 @@ export default function TranslatorCard({
     };
   }, [input, autoDetect, sourceLang, targetLang]);
 
-  // ترجمه خودکار — با dependency به tone
   useEffect(() => {
     if (!input.trim()) {
       setOutput("");
@@ -189,7 +222,6 @@ export default function TranslatorCard({
     };
   }, [input, sourceLang, targetLang, tone]);
 
-  // چک ذخیره‌شده
   useEffect(() => {
     if (!input.trim() || !output || output.startsWith("❌")) {
       setIsSaved(false);
@@ -204,7 +236,6 @@ export default function TranslatorCard({
     };
   }, [input, output, sourceLang, targetLang]);
 
-  // ذخیره خودکار
   useEffect(() => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     if (!input.trim() || !output || output.startsWith("❌")) return;
@@ -212,7 +243,11 @@ export default function TranslatorCard({
     saveTimerRef.current = setTimeout(async () => {
       const cacheKey = `${sourceLang}|${targetLang}|${input}`;
       if (cacheKey === lastSavedRef.current) return;
-      const existing = await findByContent(sourceLang, targetLang, input.trim());
+      const existing = await findByContent(
+        sourceLang,
+        targetLang,
+        input.trim()
+      );
       if (existing) {
         lastSavedRef.current = cacheKey;
         return;
@@ -234,7 +269,6 @@ export default function TranslatorCard({
     setLoading(true);
     const startTime = Date.now();
     try {
-      // اعمال لحن روی متن مبدأ
       const tonedText = applyTone(text, toneRef.current);
       const translated = await translateLongText(
         tonedText,
@@ -245,7 +279,6 @@ export default function TranslatorCard({
       setOutput(finalOutput);
 
       const timeMs = Date.now() - startTime;
-      // اطلاع به والد
       if (
         onTranslationComplete &&
         finalOutput &&
@@ -447,7 +480,6 @@ export default function TranslatorCard({
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="glass relative mx-auto max-w-6xl rounded-3xl p-2"
     >
-      {/* نوار بالای پنل‌ها */}
       <div className="mb-2 flex items-center justify-between rounded-2xl bg-white/40 px-4 py-2 dark:bg-white/5">
         <div className="flex items-center gap-2">
           <button
@@ -483,9 +515,14 @@ export default function TranslatorCard({
             </motion.span>
           )}
         </div>
+
+        {loading && (
+          <div className="progress-bar h-1 w-24 overflow-hidden rounded-full bg-brand-500/20">
+            <div className="h-full w-full bg-gradient-to-r from-brand-500 to-brand-300" />
+          </div>
+        )}
       </div>
 
-      {/* تب لینک */}
       <AnimatePresence>
         {activeTab === "link" && (
           <motion.div
@@ -523,7 +560,6 @@ export default function TranslatorCard({
         )}
       </AnimatePresence>
 
-      {/* تب سند */}
       <AnimatePresence>
         {activeTab === "doc" && !docFile && (
           <motion.div
@@ -572,7 +608,6 @@ export default function TranslatorCard({
         )}
       </AnimatePresence>
 
-      {/* پیش‌نمایش سند */}
       <AnimatePresence>
         {activeTab === "doc" && docFile && (
           <motion.div
@@ -633,7 +668,7 @@ export default function TranslatorCard({
               ? "📄 متن استخراج‌شده اینجا میاد..."
               : activeTab === "link"
               ? "🔗 نتیجه ترجمه لینک اینجا میاد..."
-              : "متن خود را بنویسید..."
+              : "متن خود را بنویسید... (Ctrl+K برای پاک کردن)"
           }
           actions={
             <>
@@ -721,7 +756,7 @@ export default function TranslatorCard({
                     <Bookmark size={17} />
                   )
                 }
-                label={isSaved ? "حذف" : "ذخیره"}
+                label={isSaved ? "حذف" : "ذخیره (Ctrl+S)"}
                 onClick={handleToggleSave}
               />
             </>
@@ -730,8 +765,11 @@ export default function TranslatorCard({
       </div>
     </motion.div>
   );
-}
+});
 
+export default TranslatorCard;
+
+// ============ Panel Component ============
 function Panel({
   lang,
   onLangChange,
@@ -817,6 +855,7 @@ function Panel({
   );
 }
 
+// ============ IconBtn Component ============
 function IconBtn({
   icon,
   label,

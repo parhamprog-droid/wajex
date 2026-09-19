@@ -1,6 +1,7 @@
 "use client";
 
 import { Moon, Sun, Clock, Bookmark, Settings } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import HistoryPanel from "./HistoryPanel";
 import SettingsPanel from "./SettingsPanel";
@@ -39,17 +40,21 @@ export default function Header({
     <>
       <header className="sticky top-0 z-50 px-6 py-4">
         <div className="glass mx-auto flex max-w-6xl items-center justify-between rounded-2xl px-5 py-3">
-          {/* لوگو */}
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-300 text-lg font-bold text-white shadow-lg shadow-brand-500/30">
+            <motion.div
+              initial={{ rotate: -10, scale: 0.9 }}
+              animate={{ rotate: 0, scale: 1 }}
+              whileHover={{ rotate: 10, scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-300 text-lg font-bold text-white shadow-lg shadow-brand-500/30"
+            >
               W
-            </div>
+            </motion.div>
             <span className="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-100">
               Wajex
             </span>
           </div>
 
-          {/* اکشن‌ها */}
           <nav className="flex items-center gap-1">
             <IconBtn
               icon={<Clock size={18} />}
@@ -67,11 +72,41 @@ export default function Header({
                 setHistoryOpen(true);
               }}
             />
-            <IconBtn
-              icon={mounted && dark ? <Sun size={18} /> : <Moon size={18} />}
-              label="تم"
+
+            {/* دکمه تم با انیمیشن چرخشی */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={toggleTheme}
-            />
+              aria-label="تغییر تم"
+              title="تغییر تم روشن/تاریک"
+              className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl text-gray-600 transition-all hover:bg-brand-500/10 hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-300"
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {mounted && dark ? (
+                  <motion.div
+                    key="sun"
+                    initial={{ rotate: -180, opacity: 0, scale: 0.5 }}
+                    animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                    exit={{ rotate: 180, opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.4, type: "spring" }}
+                  >
+                    <Sun size={18} />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="moon"
+                    initial={{ rotate: 180, opacity: 0, scale: 0.5 }}
+                    animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                    exit={{ rotate: -180, opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.4, type: "spring" }}
+                  >
+                    <Moon size={18} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+
             <IconBtn
               icon={<Settings size={18} />}
               label="تنظیمات"
@@ -106,13 +141,15 @@ function IconBtn({
   onClick?: () => void;
 }) {
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="rounded-xl p-2.5 text-gray-600 transition-all hover:bg-brand-500/10 hover:text-brand-600 active:scale-95 dark:text-gray-300 dark:hover:text-brand-300"
+      className="rounded-xl p-2.5 text-gray-600 transition-all hover:bg-brand-500/10 hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-300"
     >
       {icon}
-    </button>
+    </motion.button>
   );
 }

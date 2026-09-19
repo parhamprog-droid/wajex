@@ -17,10 +17,13 @@
       transparent 40%
     ),
     radial-gradient(circle at 80% 100%, rgba(162, 155, 254, 0.15), transparent 40%);
+  --glass-opacity: 0.75;
 }
 
+/* ====== Smooth theme transition ====== */
 html {
   color-scheme: light;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 html.dark {
@@ -33,6 +36,7 @@ body {
   min-height: 100vh;
   font-family: "Vazirmatn", "Inter", sans-serif;
   color: #1a1a2e;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .dark body {
@@ -46,8 +50,30 @@ body {
   color: #e8e8f0;
 }
 
+/* ====== Smooth transition برای همه المان‌ها ====== */
+header,
+.glass,
+button,
+input,
+textarea,
+select,
+a,
+.text-gray-900,
+.text-gray-800,
+.text-gray-700,
+.text-gray-600,
+.text-gray-500 {
+  transition: background-color 0.3s ease, border-color 0.3s ease,
+    color 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+}
+
+/* ====== Scrollbar ====== */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: rgba(108, 92, 231, 0.3);
@@ -57,8 +83,16 @@ body {
   background: rgba(108, 92, 231, 0.5);
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(162, 155, 254, 0.3);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(162, 155, 254, 0.5);
+}
+
+/* ====== Glass ====== */
 .glass {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, var(--glass-opacity));
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.7);
@@ -66,14 +100,12 @@ body {
 }
 
 .dark .glass {
-  background: rgba(20, 20, 35, 0.55);
+  background: rgba(20, 20, 35, var(--glass-opacity));
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 /* ====== Fix text colors ====== */
-
-/* حالت روشن - رنگ‌های پررنگ */
 .text-gray-900 { color: #0f0f1a !important; }
 .text-gray-800 { color: #1a1a2e !important; }
 .text-gray-700 { color: #2a2a3e !important; }
@@ -82,14 +114,12 @@ body {
 .text-gray-400 { color: #6a6a7e !important; }
 .text-gray-300 { color: #9a9aae !important; }
 
-/* placeholder رنگ واضح */
 textarea::placeholder,
 input::placeholder {
   color: #9a9aae !important;
   opacity: 1 !important;
 }
 
-/* حالت تاریک - رنگ‌های روشن */
 .dark .text-gray-900 { color: #ffffff !important; }
 .dark .text-gray-800 { color: #f0f0f8 !important; }
 .dark .text-gray-700 { color: #d8d8e0 !important; }
@@ -103,19 +133,7 @@ input::placeholder {
   color: #787888 !important;
 }
 
-/* ====== Fix LightningCSS color-scheme bug ====== */
-html {
-  color-scheme: light !important;
-}
-
-html.dark {
-  color-scheme: dark !important;
-}
 /* ====== Font Sizes ====== */
-:root {
-  --glass-opacity: 0.75;
-}
-
 .font-small textarea,
 .font-small input {
   font-size: 0.9rem !important;
@@ -131,11 +149,52 @@ html.dark {
   font-size: 1.35rem !important;
 }
 
-/* ====== Glass with opacity variable ====== */
-.glass {
-  background: rgba(255, 255, 255, var(--glass-opacity)) !important;
+/* ====== Fix LightningCSS ====== */
+html {
+  color-scheme: light !important;
+}
+html.dark {
+  color-scheme: dark !important;
 }
 
-.dark .glass {
-  background: rgba(20, 20, 35, var(--glass-opacity)) !important;
+/* ====== Custom kbd style ====== */
+kbd {
+  font-family: "Vazirmatn", "Inter", sans-serif;
+  font-feature-settings: "tnum";
+}
+
+/* ====== Progress bar ====== */
+.progress-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(108, 92, 231, 0.5),
+    transparent
+  );
+  animation: progress-shine 1.5s infinite;
+}
+
+@keyframes progress-shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ====== Smooth transitions برای theme toggle ====== */
+.theme-transition {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
