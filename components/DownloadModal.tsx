@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 const PICOFILE_URL =
-  "https://www.picofile.com/f/RuqOihWbvU/Wajex-0-1-0-x64-setup.zip";
+  "https://www.picofile.com/f/qMokfGqdRi/Wajex-0-1-0-x64-setup.zip";
 
 export default function DownloadModal({
   open,
@@ -49,7 +49,6 @@ export default function DownloadModal({
           >
             {/* Header با Gradient */}
             <div className="relative overflow-hidden bg-gradient-to-br from-brand-500 to-brand-300 p-6 text-white">
-              {/* Decorative circles */}
               <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/10" />
               <div className="absolute -bottom-10 -left-10 h-24 w-24 rounded-full bg-white/10" />
 
@@ -101,7 +100,7 @@ export default function DownloadModal({
                         Wajex for Windows
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        نسخه 0.1.0 • ۲.۷ مگابایت
+                        نسخه 0.1.0 • آخرین آپدیت
                       </p>
                     </div>
                   </div>
