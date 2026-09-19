@@ -17,6 +17,7 @@ import {
   toggleSaved,
   type TranslationItem,
 } from "@/lib/db";
+import { toast } from "@/lib/toast";
 
 export default function HistoryPanel({
   open,
@@ -48,6 +49,7 @@ export default function HistoryPanel({
       setItems(data);
     } catch (err) {
       console.error("Failed to load history:", err);
+      toast.error("خطا", "تاریخچه لود نشد");
     } finally {
       setLoading(false);
     }
@@ -56,12 +58,13 @@ export default function HistoryPanel({
   const handleDelete = async (id: string) => {
     await deleteTranslation(id);
     setItems((prev) => prev.filter((i) => i.id !== id));
+    toast.info("حذف شد", "ترجمه از تاریخچه حذف شد");
   };
 
   const handleClearAll = async () => {
-    if (!confirm("همه تاریخچه پاک شود؟")) return;
     await clearAllTranslations();
     setItems([]);
+    toast.success("تاریخچه پاک شد", "همه ترجمه‌ها حذف شدن");
   };
 
   const handleToggleSave = async (id: string) => {

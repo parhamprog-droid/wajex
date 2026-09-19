@@ -26,6 +26,7 @@ import {
   type Tone,
 } from "@/lib/settings";
 import { clearAllTranslations } from "@/lib/db";
+import { toast } from "@/lib/toast";
 
 const LANGS = [
   { code: "fa", name: "فارسی", flag: "🇮🇷" },
@@ -86,29 +87,22 @@ export default function SettingsPanel({
   };
 
   const handleResetSettings = () => {
-    if (!confirm("همه تنظیمات به حالت پیش‌فرض برگرده؟")) return;
     setSettings(DEFAULT_SETTINGS);
     saveSettings(DEFAULT_SETTINGS);
+    toast.success("تنظیمات ریست شد", "همه چیز به حالت پیش‌فرض برگشت");
   };
 
   const handleClearHistory = async () => {
-    if (!confirm("همه تاریخچه ترجمه پاک شود؟")) return;
     await clearAllTranslations();
-    alert("✅ تاریخچه پاک شد");
+    toast.success("تاریخچه پاک شد", "همه ترجمه‌ها حذف شدن");
   };
 
   const handleClearAllData = async () => {
-    if (
-      !confirm(
-        "⚠️ هشدار: همه داده‌ها (تاریخچه + تنظیمات) پاک می‌شود. مطمئنی؟"
-      )
-    )
-      return;
     await clearAllTranslations();
     localStorage.removeItem("wajex-settings");
     localStorage.removeItem("wajex-theme");
-    alert("✅ همه داده‌ها پاک شد. صفحه رو رفرش کن.");
-    window.location.reload();
+    toast.success("همه داده‌ها پاک شد", "صفحه در حال رفرش...");
+    setTimeout(() => window.location.reload(), 1500);
   };
 
   const sections = [
@@ -122,7 +116,6 @@ export default function SettingsPanel({
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -131,7 +124,6 @@ export default function SettingsPanel({
             className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"
           />
 
-          {/* Panel */}
           <motion.aside
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -139,7 +131,6 @@ export default function SettingsPanel({
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="fixed top-0 left-0 z-[70] flex h-full w-full max-w-md flex-col bg-white shadow-2xl dark:bg-[#0f0f1a]"
           >
-            {/* Header */}
             <div className="flex items-center justify-between border-b border-gray-200 p-5 dark:border-white/10">
               <div className="flex items-center gap-2">
                 <Settings size={20} className="text-brand-500" />
@@ -147,23 +138,26 @@ export default function SettingsPanel({
                   تنظیمات
                 </h2>
               </div>
-              <button
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={onClose}
                 aria-label="بستن"
                 className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
               >
                 <X size={20} />
-              </button>
+              </motion.button>
             </div>
 
-            {/* Sections nav */}
             <div className="flex gap-1 border-b border-gray-200 px-4 py-2 dark:border-white/10">
               {sections.map((s) => {
                 const Icon = s.icon;
                 const isActive = activeSection === s.id;
                 return (
-                  <button
+                  <motion.button
                     key={s.id}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setActiveSection(s.id)}
                     className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition ${
                       isActive
@@ -173,14 +167,12 @@ export default function SettingsPanel({
                   >
                     <Icon size={14} />
                     {s.label}
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
 
-            {/* Content */}
             <div className="flex-1 overflow-y-auto p-5">
-              {/* Appearance */}
               {activeSection === "appearance" && (
                 <div className="space-y-5">
                   <div>
@@ -197,8 +189,10 @@ export default function SettingsPanel({
                         const Icon = t.icon;
                         const isActive = settings.theme === t.id;
                         return (
-                          <button
+                          <motion.button
                             key={t.id}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => updateSetting("theme", t.id)}
                             className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 text-xs font-medium transition ${
                               isActive
@@ -208,7 +202,7 @@ export default function SettingsPanel({
                           >
                             <Icon size={18} />
                             {t.label}
-                          </button>
+                          </motion.button>
                         );
                       })}
                     </div>
@@ -227,8 +221,10 @@ export default function SettingsPanel({
                       ].map((s) => {
                         const isActive = settings.fontSize === s.id;
                         return (
-                          <button
+                          <motion.button
                             key={s.id}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => updateSetting("fontSize", s.id)}
                             className={`rounded-xl border-2 px-3 py-2.5 text-xs font-medium transition ${
                               isActive
@@ -237,7 +233,7 @@ export default function SettingsPanel({
                             }`}
                           >
                             {s.label}
-                          </button>
+                          </motion.button>
                         );
                       })}
                     </div>
@@ -266,7 +262,6 @@ export default function SettingsPanel({
                 </div>
               )}
 
-              {/* Translation */}
               {activeSection === "translation" && (
                 <div className="space-y-5">
                   <div>
@@ -346,8 +341,10 @@ export default function SettingsPanel({
                       {TONES.map((t) => {
                         const isActive = settings.defaultTone === t.id;
                         return (
-                          <button
+                          <motion.button
                             key={t.id}
+                            whileHover={{ scale: 1.08, y: -2 }}
+                            whileTap={{ scale: 0.92 }}
                             onClick={() => updateSetting("defaultTone", t.id)}
                             className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
                               isActive
@@ -356,7 +353,7 @@ export default function SettingsPanel({
                             }`}
                           >
                             {t.label}
-                          </button>
+                          </motion.button>
                         );
                       })}
                     </div>
@@ -364,10 +361,11 @@ export default function SettingsPanel({
                 </div>
               )}
 
-              {/* Privacy */}
               {activeSection === "privacy" && (
                 <div className="space-y-3">
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={handleClearHistory}
                     className="flex w-full items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-right transition hover:bg-amber-500/10"
                   >
@@ -380,9 +378,11 @@ export default function SettingsPanel({
                         همه ترجمه‌های ذخیره‌شده حذف می‌شن
                       </p>
                     </div>
-                  </button>
+                  </motion.button>
 
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={handleResetSettings}
                     className="flex w-full items-center gap-3 rounded-xl border border-orange-500/30 bg-orange-500/5 p-4 text-right transition hover:bg-orange-500/10"
                   >
@@ -395,9 +395,11 @@ export default function SettingsPanel({
                         همه تنظیمات ریست می‌شن
                       </p>
                     </div>
-                  </button>
+                  </motion.button>
 
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={handleClearAllData}
                     className="flex w-full items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-right transition hover:bg-red-500/10"
                   >
@@ -410,17 +412,20 @@ export default function SettingsPanel({
                         تاریخچه + تنظیمات + تم
                       </p>
                     </div>
-                  </button>
+                  </motion.button>
                 </div>
               )}
 
-              {/* About */}
               {activeSection === "about" && (
                 <div className="space-y-4">
                   <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500/10 to-brand-300/10 p-6 text-center">
-                    <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-300 text-2xl font-bold text-white shadow-lg shadow-brand-500/30">
+                    <motion.div
+                      animate={{ rotate: [0, 5, -5, 0] }}
+                      transition={{ duration: 6, repeat: Infinity }}
+                      className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-300 text-2xl font-bold text-white shadow-lg shadow-brand-500/30"
+                    >
                       W
-                    </div>
+                    </motion.div>
                     <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                       Wajex
                     </h3>

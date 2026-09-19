@@ -10,6 +10,7 @@ import {
   Clock,
   FileText,
   Hash,
+  Image as ImageIcon,
 } from "lucide-react";
 import { getToneLabel, type Tone } from "@/lib/tone";
 import {
@@ -18,6 +19,7 @@ import {
   findSynonyms,
   buildExamples,
 } from "@/lib/translationInfo";
+import ImageDictionary from "./ImageDictionary";
 
 const TONES: { id: Tone; label: string }[] = [
   { id: "formal", label: "🎩 رسمی" },
@@ -31,6 +33,7 @@ const FEATURES = [
   { id: "explain", label: "توضیح ترجمه", icon: Info },
   { id: "synonyms", label: "مترادف‌ها", icon: Languages },
   { id: "examples", label: "مثال‌ها", icon: BookOpen },
+  { id: "images", label: "تصویر", icon: ImageIcon },
 ];
 
 export default function FeaturePanel({
@@ -51,7 +54,7 @@ export default function FeaturePanel({
   translationTimeMs?: number;
 }) {
   const [activeFeature, setActiveFeature] = useState<
-    "explain" | "synonyms" | "examples"
+    "explain" | "synonyms" | "examples" | "images"
   >("explain");
 
   const stats = useMemo(() => {
@@ -72,6 +75,12 @@ export default function FeaturePanel({
     const words = output.trim().split(/\s+/);
     return words.find((w) => w.length > 3) || words[0] || "";
   }, [output]);
+
+  const firstWordSource = useMemo(() => {
+    if (!input.trim()) return "";
+    const words = input.trim().split(/\s+/);
+    return words.find((w) => w.length > 3) || words[0] || "";
+  }, [input]);
 
   const synonyms = useMemo(() => {
     if (!firstWord) return [];
@@ -138,7 +147,7 @@ export default function FeaturePanel({
         whileHover={{ scale: 1.002 }}
         className="glass rounded-2xl p-1.5"
       >
-        <div className="flex gap-1 border-b border-gray-200/50 px-2 pb-2 dark:border-white/10">
+        <div className="flex gap-1 overflow-x-auto border-b border-gray-200/50 px-2 pb-2 dark:border-white/10">
           {FEATURES.map((f) => {
             const Icon = f.icon;
             const isActive = activeFeature === f.id;
@@ -148,7 +157,7 @@ export default function FeaturePanel({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveFeature(f.id as any)}
-                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
                   isActive
                     ? "bg-brand-500/15 text-brand-600 dark:text-brand-300"
                     : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
@@ -308,6 +317,13 @@ export default function FeaturePanel({
                 )}
               </>
             )}
+
+            {activeFeature === "images" && (
+              <ImageDictionary
+                word={firstWordSource || firstWord}
+                sourceLang={sourceLang}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
       </motion.div>
@@ -352,10 +368,8 @@ function InfoBox({
   children: React.ReactNode;
 }) {
   const colorClasses = {
-    brand:
-      "bg-brand-500/5 text-brand-600 dark:text-brand-300",
-    purple:
-      "bg-purple-500/5 text-purple-600 dark:text-purple-300",
+    brand: "bg-brand-500/5 text-brand-600 dark:text-brand-300",
+    purple: "bg-purple-500/5 text-purple-600 dark:text-purple-300",
     blue: "bg-blue-500/5 text-blue-600 dark:text-blue-300",
   };
 
