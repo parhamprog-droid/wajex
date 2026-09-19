@@ -475,52 +475,67 @@ const TranslatorCard = forwardRef<
   return (
     <motion.div
       key={activeTab}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0, y: 30, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className="glass relative mx-auto max-w-6xl rounded-3xl p-2"
     >
       <div className="mb-2 flex items-center justify-between rounded-2xl bg-white/40 px-4 py-2 dark:bg-white/5">
         <div className="flex items-center gap-2">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setAutoDetect(!autoDetect)}
-            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
               autoDetect
                 ? "bg-brand-500/15 text-brand-600 dark:text-brand-300"
                 : "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
             }`}
             title="تشخیص خودکار زبان"
           >
-            <Sparkles size={14} />
+            <Sparkles
+              size={14}
+              className={autoDetect ? "animate-pulse" : ""}
+            />
             تشخیص خودکار زبان
-          </button>
-          {detectedLang && autoDetect && (
-            <motion.span
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
-            >
-              تشخیص:{" "}
-              {detectedLang === "fa"
-                ? "فارسی"
-                : detectedLang === "en"
-                ? "انگلیسی"
-                : detectedLang === "ar"
-                ? "عربی"
-                : detectedLang === "zh"
-                ? "چینی"
-                : detectedLang === "ru"
-                ? "روسی"
-                : detectedLang}
-            </motion.span>
-          )}
+          </motion.button>
+          <AnimatePresence>
+            {detectedLang && autoDetect && (
+              <motion.span
+                initial={{ opacity: 0, x: -10, scale: 0.8 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -10, scale: 0.8 }}
+                className="rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
+              >
+                تشخیص:{" "}
+                {detectedLang === "fa"
+                  ? "فارسی"
+                  : detectedLang === "en"
+                  ? "انگلیسی"
+                  : detectedLang === "ar"
+                  ? "عربی"
+                  : detectedLang === "zh"
+                  ? "چینی"
+                  : detectedLang === "ru"
+                  ? "روسی"
+                  : detectedLang}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
 
-        {loading && (
-          <div className="progress-bar h-1 w-24 overflow-hidden rounded-full bg-brand-500/20">
-            <div className="h-full w-full bg-gradient-to-r from-brand-500 to-brand-300" />
-          </div>
-        )}
+        <AnimatePresence>
+          {loading && (
+            <motion.div
+              initial={{ opacity: 0, scaleX: 0 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              exit={{ opacity: 0, scaleX: 0 }}
+              className="h-1 w-24 overflow-hidden rounded-full bg-brand-500/20"
+            >
+              <div className="h-full w-full animate-pulse bg-gradient-to-r from-brand-500 to-brand-300" />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <AnimatePresence>
@@ -544,17 +559,19 @@ const TranslatorCard = forwardRef<
                   if (e.key === "Enter") handleLinkTranslate();
                 }}
               />
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleLinkTranslate}
                 disabled={linkLoading || !linkUrl.trim()}
-                className="flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow-md shadow-brand-500/30 transition hover:bg-brand-600 active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow-md shadow-brand-500/30 transition hover:bg-brand-600 disabled:opacity-50"
               >
                 {linkLoading ? (
                   <Loader2 size={15} className="animate-spin" />
                 ) : (
                   "ترجمه"
                 )}
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         )}
@@ -568,7 +585,8 @@ const TranslatorCard = forwardRef<
             exit={{ opacity: 0, height: 0 }}
             className="mb-2 overflow-hidden"
           >
-            <div
+            <motion.div
+              whileHover={{ scale: 1.01 }}
               onDragOver={(e) => {
                 e.preventDefault();
                 setIsDragging(true);
@@ -576,18 +594,23 @@ const TranslatorCard = forwardRef<
               onDragLeave={() => setIsDragging(false)}
               onDrop={onDocDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 transition ${
+              className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 transition-all ${
                 isDragging
-                  ? "border-brand-500 bg-brand-500/10"
+                  ? "border-brand-500 bg-brand-500/10 scale-105"
                   : "border-gray-300 bg-white/40 hover:border-brand-500/60 hover:bg-brand-500/5 dark:border-white/20 dark:bg-white/5"
               }`}
             >
-              <FileUp
-                size={40}
-                className={`mb-3 ${
-                  isDragging ? "text-brand-500" : "text-gray-400"
-                }`}
-              />
+              <motion.div
+                animate={isDragging ? { y: [-5, 5, -5] } : { y: 0 }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                <FileUp
+                  size={40}
+                  className={`mb-3 ${
+                    isDragging ? "text-brand-500" : "text-gray-400"
+                  }`}
+                />
+              </motion.div>
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {isDragging
                   ? "رها کن تا آپلود شه"
@@ -603,7 +626,7 @@ const TranslatorCard = forwardRef<
                 onChange={onDocChange}
                 className="hidden"
               />
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -668,7 +691,7 @@ const TranslatorCard = forwardRef<
               ? "📄 متن استخراج‌شده اینجا میاد..."
               : activeTab === "link"
               ? "🔗 نتیجه ترجمه لینک اینجا میاد..."
-              : "متن خود را بنویسید... (Ctrl+K برای پاک کردن)"
+              : "متن خود را بنویسید..."
           }
           actions={
             <>
@@ -756,7 +779,7 @@ const TranslatorCard = forwardRef<
                     <Bookmark size={17} />
                   )
                 }
-                label={isSaved ? "حذف" : "ذخیره (Ctrl+S)"}
+                label={isSaved ? "حذف" : "ذخیره"}
                 onClick={handleToggleSave}
               />
             </>
@@ -792,9 +815,13 @@ function Panel({
   isListening?: boolean;
 }) {
   return (
-    <div
+    <motion.div
+      whileHover={{ scale: 1.005 }}
+      transition={{ duration: 0.2 }}
       className={`flex min-h-[280px] flex-col rounded-2xl bg-white/40 p-5 transition-all dark:bg-white/5 ${
-        isListening ? "ring-2 ring-red-500/60" : ""
+        isListening
+          ? "ring-2 ring-red-500/60 ring-offset-2 ring-offset-transparent"
+          : ""
       }`}
     >
       <div className="mb-3 flex items-center justify-between">
@@ -814,44 +841,37 @@ function Panel({
         <AnimatePresence>
           {loading && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute bottom-2 left-2 flex gap-1"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute bottom-2 left-2 loading-dots"
             >
-              {[0, 1, 2].map((i) => (
-                <motion.span
-                  key={i}
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{
-                    duration: 0.6,
-                    repeat: Infinity,
-                    delay: i * 0.15,
-                  }}
-                  className="h-2 w-2 rounded-full bg-brand-500"
-                />
-              ))}
+              <span />
+              <span />
+              <span />
             </motion.div>
           )}
         </AnimatePresence>
 
-        {isListening && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute bottom-2 right-2 flex items-center gap-2 rounded-full bg-red-500/10 px-3 py-1 text-xs font-medium text-red-500"
-          >
-            <motion.span
-              animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-              className="h-2 w-2 rounded-full bg-red-500"
-            />
-            در حال شنیدن
-          </motion.div>
-        )}
+        <AnimatePresence>
+          {isListening && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="absolute bottom-2 right-2 flex items-center gap-2 rounded-full bg-red-500/10 px-3 py-1 text-xs font-medium text-red-500"
+            >
+              <motion.span
+                animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+                className="h-2 w-2 rounded-full bg-red-500"
+              />
+              در حال شنیدن
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -868,17 +888,19 @@ function IconBtn({
   isActive?: boolean;
 }) {
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.1, y: -2 }}
+      whileTap={{ scale: 0.9 }}
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`rounded-lg p-2 transition active:scale-90 ${
+      className={`rounded-lg p-2 transition-all ${
         isActive
           ? "bg-red-500/15 text-red-500"
           : "text-gray-500 hover:bg-brand-500/10 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-300"
       }`}
     >
       {icon}
-    </button>
+    </motion.button>
   );
 }

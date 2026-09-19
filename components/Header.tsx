@@ -1,10 +1,12 @@
 "use client";
 
-import { Moon, Sun, Clock, Bookmark, Settings } from "lucide-react";
+import { Moon, Sun, Clock, Bookmark, Settings, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import HistoryPanel from "./HistoryPanel";
 import SettingsPanel from "./SettingsPanel";
+import DownloadModal from "./DownloadModal";
+import AnimatedLogo from "./AnimatedLogo";
 import type { TranslationItem } from "@/lib/db";
 
 export default function Header({
@@ -17,6 +19,8 @@ export default function Header({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<"all" | "saved">("all");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [downloadOpen, setDownloadOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -27,6 +31,12 @@ export default function Header({
     const isDark = saved ? saved === "dark" : prefersDark;
     setDark(isDark);
     document.documentElement.classList.toggle("dark", isDark);
+
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const toggleTheme = () => {
@@ -38,24 +48,48 @@ export default function Header({
 
   return (
     <>
-      <header className="sticky top-0 z-50 px-6 py-4">
-        <div className="glass mx-auto flex max-w-6xl items-center justify-between rounded-2xl px-5 py-3">
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="sticky top-0 z-50 px-6 py-4"
+      >
+        <motion.div
+          animate={{
+            boxShadow: scrolled
+              ? "0 8px 32px rgba(108, 92, 231, 0.15)"
+              : "0 8px 32px rgba(31, 38, 135, 0.08)",
+          }}
+          transition={{ duration: 0.3 }}
+          className="glass mx-auto flex max-w-6xl items-center justify-between rounded-2xl px-5 py-3"
+        >
+          {/* لوگو */}
           <div className="flex items-center gap-3">
-            <motion.div
-              initial={{ rotate: -10, scale: 0.9 }}
-              animate={{ rotate: 0, scale: 1 }}
-              whileHover={{ rotate: 10, scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-300 text-lg font-bold text-white shadow-lg shadow-brand-500/30"
+            <AnimatedLogo size={40} />
+            <motion.span
+              initial={{ x: -10, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-100"
             >
-              W
-            </motion.div>
-            <span className="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-100">
               Wajex
-            </span>
+            </motion.span>
           </div>
 
+          {/* اکشن‌ها */}
           <nav className="flex items-center gap-1">
+            {/* دکمه دانلود */}
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setDownloadOpen(true)}
+              className="hidden items-center gap-1.5 rounded-xl bg-gradient-to-br from-brand-500 to-brand-300 px-3 py-2 text-xs font-medium text-white shadow-md shadow-brand-500/30 transition hover:shadow-lg hover:shadow-brand-500/40 sm:flex"
+              title="دانلود اپ دسکتاپ"
+            >
+              <Download size={14} />
+              دانلود اپ
+            </motion.button>
+
             <IconBtn
               icon={<Clock size={18} />}
               label="تاریخچه"
@@ -73,13 +107,11 @@ export default function Header({
               }}
             />
 
-            {/* دکمه تم با انیمیشن چرخشی */}
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
               onClick={toggleTheme}
               aria-label="تغییر تم"
-              title="تغییر تم روشن/تاریک"
               className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl text-gray-600 transition-all hover:bg-brand-500/10 hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-300"
             >
               <AnimatePresence mode="wait" initial={false}>
@@ -113,8 +145,8 @@ export default function Header({
               onClick={() => setSettingsOpen(true)}
             />
           </nav>
-        </div>
-      </header>
+        </motion.div>
+      </motion.header>
 
       <HistoryPanel
         open={historyOpen}
@@ -126,6 +158,11 @@ export default function Header({
       <SettingsPanel
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
+      />
+
+      <DownloadModal
+        open={downloadOpen}
+        onClose={() => setDownloadOpen(false)}
       />
     </>
   );
@@ -142,8 +179,8 @@ function IconBtn({
 }) {
   return (
     <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={{ scale: 1.08, y: -2 }}
+      whileTap={{ scale: 0.92 }}
       onClick={onClick}
       aria-label={label}
       title={label}

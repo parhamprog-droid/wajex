@@ -20,13 +20,23 @@ export default function TabBar({
   onChange: (id: TabId) => void;
 }) {
   return (
-    <div className="mx-auto mt-6 flex max-w-2xl flex-wrap items-center justify-center gap-1 rounded-2xl bg-white/50 p-1.5 backdrop-blur-xl dark:bg-white/5">
-      {TABS.map((tab) => {
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1, duration: 0.4 }}
+      className="mx-auto mt-6 flex max-w-2xl flex-wrap items-center justify-center gap-1 rounded-2xl bg-white/50 p-1.5 backdrop-blur-xl dark:bg-white/5"
+    >
+      {TABS.map((tab, index) => {
         const Icon = tab.icon;
         const isActive = active === tab.id;
         return (
-          <button
+          <motion.button
             key={tab.id}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.15 + index * 0.05 }}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => onChange(tab.id)}
             className="relative flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition"
           >
@@ -38,16 +48,21 @@ export default function TabBar({
               />
             )}
             <span
-              className={`relative z-10 flex items-center gap-2 ${
+              className={`relative z-10 flex items-center gap-2 transition-colors ${
                 isActive ? "text-white" : "text-gray-600 dark:text-gray-300"
               }`}
             >
-              <Icon size={16} />
+              <motion.span
+                animate={isActive ? { rotate: [0, 10, 0] } : {}}
+                transition={{ duration: 0.3 }}
+              >
+                <Icon size={16} />
+              </motion.span>
               {tab.label}
             </span>
-          </button>
+          </motion.button>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

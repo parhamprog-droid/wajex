@@ -9,13 +9,9 @@ import {
   BookOpen,
   Clock,
   FileText,
-  Type,
   Hash,
 } from "lucide-react";
-import {
-  getToneLabel,
-  type Tone,
-} from "@/lib/tone";
+import { getToneLabel, type Tone } from "@/lib/tone";
 import {
   buildTranslationStats,
   getLangName,
@@ -58,7 +54,6 @@ export default function FeaturePanel({
     "explain" | "synonyms" | "examples"
   >("explain");
 
-  // ساخت آمار ترجمه
   const stats = useMemo(() => {
     if (!input.trim() || !output.trim()) return null;
     return buildTranslationStats(
@@ -72,21 +67,17 @@ export default function FeaturePanel({
     );
   }, [input, output, sourceLang, targetLang, tone, translationTimeMs]);
 
-  // اولین کلمه مهم برای مترادف/مثال
   const firstWord = useMemo(() => {
     if (!output.trim()) return "";
     const words = output.trim().split(/\s+/);
-    // اولین کلمه با طول بیشتر از ۳
     return words.find((w) => w.length > 3) || words[0] || "";
   }, [output]);
 
-  // مترادف‌ها
   const synonyms = useMemo(() => {
     if (!firstWord) return [];
     return findSynonyms(firstWord);
   }, [firstWord]);
 
-  // مثال‌ها
   const examples = useMemo(() => {
     if (!firstWord) return [];
     return buildExamples(firstWord, targetLang);
@@ -102,12 +93,22 @@ export default function FeaturePanel({
       {/* انتخاب لحن */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <span className="flex items-center gap-1.5 text-sm font-medium text-gray-600 dark:text-gray-300">
-          <Sparkles size={15} className="text-brand-500" />
+          <motion.span
+            animate={{ rotate: [0, 15, -15, 0] }}
+            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+          >
+            <Sparkles size={15} className="text-brand-500" />
+          </motion.span>
           لحن ترجمه:
         </span>
-        {TONES.map((t) => (
-          <button
+        {TONES.map((t, i) => (
+          <motion.button
             key={t.id}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.25 + i * 0.05 }}
+            whileHover={{ scale: 1.08, y: -2 }}
+            whileTap={{ scale: 0.92 }}
             onClick={() => onToneChange(t.id)}
             className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
               tone === t.id
@@ -116,30 +117,38 @@ export default function FeaturePanel({
             }`}
           >
             {t.label}
-          </button>
+          </motion.button>
         ))}
-        {tone !== "formal" && (
-          <motion.span
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
-          >
-            فعال
-          </motion.span>
-        )}
+        <AnimatePresence>
+          {tone !== "formal" && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              className="rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
+            >
+              فعال
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* پنل ویژگی */}
-      <div className="glass rounded-2xl p-1.5">
+      <motion.div
+        whileHover={{ scale: 1.002 }}
+        className="glass rounded-2xl p-1.5"
+      >
         <div className="flex gap-1 border-b border-gray-200/50 px-2 pb-2 dark:border-white/10">
           {FEATURES.map((f) => {
             const Icon = f.icon;
             const isActive = activeFeature === f.id;
             return (
-              <button
+              <motion.button
                 key={f.id}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveFeature(f.id as any)}
-                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
                   isActive
                     ? "bg-brand-500/15 text-brand-600 dark:text-brand-300"
                     : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
@@ -147,7 +156,7 @@ export default function FeaturePanel({
               >
                 <Icon size={15} />
                 {f.label}
-              </button>
+              </motion.button>
             );
           })}
         </div>
@@ -155,22 +164,24 @@ export default function FeaturePanel({
         <AnimatePresence mode="wait">
           <motion.div
             key={activeFeature}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
             className="p-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300"
           >
-            {/* توضیح ترجمه */}
             {activeFeature === "explain" && (
               <>
                 {!stats ? (
-                  <p className="text-center text-gray-400 dark:text-gray-500">
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center text-gray-400 dark:text-gray-500"
+                  >
                     یه متن ترجمه کن تا توضیحات اینجا نمایش داده بشه
-                  </p>
+                  </motion.p>
                 ) : (
                   <div className="space-y-3">
-                    {/* آمار */}
                     <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                       <StatBox
                         icon={<FileText size={14} />}
@@ -198,46 +209,40 @@ export default function FeaturePanel({
                       />
                     </div>
 
-                    {/* مسیر ترجمه */}
-                    <div className="rounded-xl bg-brand-500/5 p-3">
-                      <p className="mb-1 flex items-center gap-1.5 text-xs font-medium text-brand-600 dark:text-brand-300">
-                        <Languages size={13} />
-                        مسیر ترجمه
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">
-                          {getLangName(stats.sourceLang)}
-                        </span>
-                        <span className="mx-2 text-gray-400">→</span>
-                        <span className="font-medium">
-                          {getLangName(stats.targetLang)}
-                        </span>
-                      </p>
-                    </div>
+                    <InfoBox
+                      icon={<Languages size={13} />}
+                      title="مسیر ترجمه"
+                      color="brand"
+                    >
+                      <span className="font-medium">
+                        {getLangName(stats.sourceLang)}
+                      </span>
+                      <span className="mx-2 text-gray-400">→</span>
+                      <span className="font-medium">
+                        {getLangName(stats.targetLang)}
+                      </span>
+                    </InfoBox>
 
-                    {/* لحن */}
-                    <div className="rounded-xl bg-purple-500/5 p-3">
-                      <p className="mb-1 flex items-center gap-1.5 text-xs font-medium text-purple-600 dark:text-purple-300">
-                        <Sparkles size={13} />
-                        لحن اعمال‌شده
-                      </p>
-                      <p className="text-sm font-medium">{stats.toneLabel}</p>
-                    </div>
+                    <InfoBox
+                      icon={<Sparkles size={13} />}
+                      title="لحن اعمال‌شده"
+                      color="purple"
+                    >
+                      <span className="font-medium">{stats.toneLabel}</span>
+                    </InfoBox>
 
-                    {/* زمان خواندن */}
-                    <div className="rounded-xl bg-blue-500/5 p-3">
-                      <p className="mb-1 flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-300">
-                        <Clock size={13} />
-                        زمان تقریبی خواندن
-                      </p>
-                      <p className="text-sm">{stats.estimatedReadingTime}</p>
-                    </div>
+                    <InfoBox
+                      icon={<Clock size={13} />}
+                      title="زمان تقریبی خواندن"
+                      color="blue"
+                    >
+                      <span>{stats.estimatedReadingTime}</span>
+                    </InfoBox>
                   </div>
                 )}
               </>
             )}
 
-            {/* مترادف‌ها */}
             {activeFeature === "synonyms" && (
               <>
                 {synonyms.length === 0 ? (
@@ -256,15 +261,20 @@ export default function FeaturePanel({
                       »:
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {synonyms.map((s) => (
-                        <button
+                      {synonyms.map((s, i) => (
+                        <motion.button
                           key={s}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: i * 0.05 }}
+                          whileHover={{ scale: 1.08, y: -2 }}
+                          whileTap={{ scale: 0.92 }}
                           onClick={() => navigator.clipboard.writeText(s)}
-                          className="rounded-lg bg-brand-500/10 px-3 py-1.5 text-brand-700 transition hover:bg-brand-500/20 active:scale-95 dark:text-brand-300"
+                          className="rounded-lg bg-brand-500/10 px-3 py-1.5 text-brand-700 transition hover:bg-brand-500/20 dark:text-brand-300"
                           title="کلیک کن تا کپی کنی"
                         >
                           {s}
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
                   </div>
@@ -272,7 +282,6 @@ export default function FeaturePanel({
               </>
             )}
 
-            {/* مثال‌ها */}
             {activeFeature === "examples" && (
               <>
                 {examples.length === 0 ? (
@@ -284,10 +293,16 @@ export default function FeaturePanel({
                 ) : (
                   <ul className="space-y-2">
                     {examples.map((ex, i) => (
-                      <li key={i} className="flex items-start gap-2">
+                      <motion.li
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="flex items-start gap-2"
+                      >
                         <span className="text-brand-500">•</span>
                         <span>{ex}</span>
-                      </li>
+                      </motion.li>
                     ))}
                   </ul>
                 )}
@@ -295,7 +310,7 @@ export default function FeaturePanel({
             )}
           </motion.div>
         </AnimatePresence>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
@@ -310,7 +325,10 @@ function StatBox({
   value: string;
 }) {
   return (
-    <div className="rounded-xl bg-gray-100/50 p-2.5 text-center dark:bg-white/5">
+    <motion.div
+      whileHover={{ scale: 1.05, y: -2 }}
+      className="rounded-xl bg-gray-100/50 p-2.5 text-center dark:bg-white/5"
+    >
       <div className="mb-1 flex items-center justify-center gap-1 text-gray-500 dark:text-gray-400">
         {icon}
         <span className="text-[10px]">{label}</span>
@@ -318,6 +336,41 @@ function StatBox({
       <p className="text-base font-bold text-gray-900 dark:text-gray-100">
         {value}
       </p>
-    </div>
+    </motion.div>
+  );
+}
+
+function InfoBox({
+  icon,
+  title,
+  color,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  color: "brand" | "purple" | "blue";
+  children: React.ReactNode;
+}) {
+  const colorClasses = {
+    brand:
+      "bg-brand-500/5 text-brand-600 dark:text-brand-300",
+    purple:
+      "bg-purple-500/5 text-purple-600 dark:text-purple-300",
+    blue: "bg-blue-500/5 text-blue-600 dark:text-blue-300",
+  };
+
+  return (
+    <motion.div
+      whileHover={{ scale: 1.01 }}
+      className={`rounded-xl p-3 ${colorClasses[color]}`}
+    >
+      <p className="mb-1 flex items-center gap-1.5 text-xs font-medium">
+        {icon}
+        {title}
+      </p>
+      <div className="text-sm text-gray-700 dark:text-gray-300">
+        {children}
+      </div>
+    </motion.div>
   );
 }
