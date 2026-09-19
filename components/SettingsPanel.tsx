@@ -16,6 +16,7 @@ import {
   Trash2,
   Type,
   Droplets,
+  BarChart3,
 } from "lucide-react";
 import {
   loadSettings,
@@ -27,6 +28,7 @@ import {
 } from "@/lib/settings";
 import { clearAllTranslations } from "@/lib/db";
 import { toast } from "@/lib/toast";
+import StatsPanel from "./StatsPanel";
 
 const LANGS = [
   { code: "fa", name: "فارسی", flag: "🇮🇷" },
@@ -68,7 +70,7 @@ export default function SettingsPanel({
 }) {
   const [settings, setSettings] = useState<SettingsType>(DEFAULT_SETTINGS);
   const [activeSection, setActiveSection] = useState<
-    "appearance" | "translation" | "privacy" | "about"
+    "appearance" | "translation" | "stats" | "privacy" | "about"
   >("appearance");
 
   useEffect(() => {
@@ -108,7 +110,8 @@ export default function SettingsPanel({
   const sections = [
     { id: "appearance" as const, label: "ظاهر", icon: Palette },
     { id: "translation" as const, label: "ترجمه", icon: Globe },
-    { id: "privacy" as const, label: "حریم خصوصی", icon: Shield },
+    { id: "stats" as const, label: "آمار", icon: BarChart3 },
+    { id: "privacy" as const, label: "حریم", icon: Shield },
     { id: "about" as const, label: "درباره", icon: Info },
   ];
 
@@ -149,7 +152,7 @@ export default function SettingsPanel({
               </motion.button>
             </div>
 
-            <div className="flex gap-1 border-b border-gray-200 px-4 py-2 dark:border-white/10">
+            <div className="flex gap-1 overflow-x-auto border-b border-gray-200 px-4 py-2 dark:border-white/10">
               {sections.map((s) => {
                 const Icon = s.icon;
                 const isActive = activeSection === s.id;
@@ -159,7 +162,7 @@ export default function SettingsPanel({
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setActiveSection(s.id)}
-                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition ${
+                    className={`flex flex-1 shrink-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition ${
                       isActive
                         ? "bg-brand-500/15 text-brand-600 dark:text-brand-300"
                         : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -360,6 +363,8 @@ export default function SettingsPanel({
                   </div>
                 </div>
               )}
+
+              {activeSection === "stats" && <StatsPanel />}
 
               {activeSection === "privacy" && (
                 <div className="space-y-3">
