@@ -1,26 +1,80 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Camera, Paperclip, Copy, Volume2, Bookmark, Check } from "lucide-react";
+import {
+  Mic,
+  Camera,
+  Paperclip,
+  Copy,
+  Volume2,
+  Bookmark,
+  Check,
+} from "lucide-react";
 import LanguageSelector from "./LanguageSelector";
 import SwapButton from "./SwapButton";
+import { addTranslation, type TranslationItem } from "@/lib/db";
 
-export default function TranslatorCard() {
-  const [sourceLang, setSourceLang] = useState("fa");
-  const [targetLang, setTargetLang] = useState("en");
-  const [input, setInput] = useState("");
-  const [output, setOutput] = useState("");
+export default function TranslatorCard({
+  prefill,
+}: {
+  prefill?: TranslationItem | null;
+}) {
+  const [sourceLang, setSourceLang] = useState(prefill?.sourceLang ?? "fa");
+  const [targetLang, setTargetLang] = useState(prefill?.targetLang ?? "en");
+  const [input, setInput] = useState(prefill?.input ?? "");
+  const [output, setOutput] = useState(prefill?.output ?? "");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const handleTranslate = async (text: string) => {
-    setInput(text);
-    if (!text.trim()) {
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedRef = useRef<string>("");
+
+  // ترجمه بعد از ۸۰۰ms توقف تایپ
+  useEffect(() => {
+    if (!input.trim()) {
       setOutput("");
       return;
     }
 
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(() => {
+      doTranslate(input);
+    }, 800);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [input, sourceLang, targetLang]);
+
+  // ذخیره در تاریخچه بعد از ۳ ثانیه بی‌کاری + حداقل ۵ حرف
+  useEffect(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
+    if (!input.trim() || !output || output.startsWith("❌")) return;
+    if (input.trim().length < 5) return;
+
+    saveTimerRef.current = setTimeout(async () => {
+      const cacheKey = `${sourceLang}|${targetLang}|${input}`;
+      if (cacheKey === lastSavedRef.current) return;
+      lastSavedRef.current = cacheKey;
+
+      await addTranslation({
+        sourceLang,
+        targetLang,
+        input: input.trim(),
+        output,
+      });
+    }, 3000);
+
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [input, output, sourceLang, targetLang]);
+
+  const doTranslate = async (text: string) => {
     setLoading(true);
     try {
       const langPair = `${sourceLang}|${targetLang}`;
@@ -34,16 +88,18 @@ export default function TranslatorCard() {
       if (data.responseData?.translatedText) {
         let cleanText = data.responseData.translatedText;
 
-        // اگه MyMemory ارور داد
-        if (cleanText.includes("INVALID") || cleanText.includes("QUERY LENGTH")) {
+        if (
+          cleanText.includes("INVALID") ||
+          cleanText.includes("QUERY LENGTH")
+        ) {
           setOutput("❌ این متن قابل ترجمه نیست");
-        } else {
-          // پاک‌سازی: حذف براکت‌ها و پرانتزهای اضافی
-          cleanText = cleanText.replace(/\[.*?\]\s*/g, "");
-          cleanText = cleanText.replace(/\(.*?\)\s*/g, "");
-          cleanText = cleanText.trim();
-          setOutput(cleanText || "❌ ترجمه پیدا نشد");
+          return;
         }
+
+        cleanText = cleanText.replace(/\[.*?\]\s*/g, "");
+        cleanText = cleanText.replace(/\(.*?\)\s*/g, "");
+        cleanText = cleanText.trim();
+        setOutput(cleanText || "❌ ترجمه پیدا نشد");
       } else {
         setOutput("❌ ترجمه پیدا نشد");
       }
@@ -60,6 +116,7 @@ export default function TranslatorCard() {
     setTargetLang(sourceLang);
     setInput(output);
     setOutput(input);
+    lastSavedRef.current = "";
   };
 
   const copyOutput = async () => {
@@ -88,7 +145,7 @@ export default function TranslatorCard() {
           lang={sourceLang}
           onLangChange={setSourceLang}
           value={input}
-          onChange={handleTranslate}
+          onChange={setInput}
           placeholder="متن خود را بنویسید..."
           actions={
             <>
@@ -113,7 +170,13 @@ export default function TranslatorCard() {
           actions={
             <>
               <IconBtn
-                icon={copied ? <Check size={17} className="text-green-500" /> : <Copy size={17} />}
+                icon={
+                  copied ? (
+                    <Check size={17} className="text-green-500" />
+                  ) : (
+                    <Copy size={17} />
+                  )
+                }
                 label="کپی"
                 onClick={copyOutput}
               />
@@ -164,7 +227,7 @@ function Panel({
           onChange={(e) => onChange?.(e.target.value)}
           placeholder={placeholder}
           dir="auto"
-          className="h-full w-full resize-none bg-transparent text-lg leading-relaxed text-gray-800 placeholder:text-gray-400 focus:outline-none dark:text-gray-100 dark:placeholder:text-gray-500"
+          className="h-full w-full resize-none bg-transparent text-lg leading-relaxed text-gray-900 placeholder:text-gray-400 focus:outline-none dark:text-gray-100 dark:placeholder:text-gray-500"
         />
         <AnimatePresence>
           {loading && (
@@ -178,7 +241,11 @@ function Panel({
                 <motion.span
                   key={i}
                   animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
+                  transition={{
+                    duration: 0.6,
+                    repeat: Infinity,
+                    delay: i * 0.15,
+                  }}
                   className="h-2 w-2 rounded-full bg-brand-500"
                 />
               ))}
@@ -203,6 +270,7 @@ function IconBtn({
     <button
       onClick={onClick}
       aria-label={label}
+      title={label}
       className="rounded-lg p-2 text-gray-500 transition hover:bg-brand-500/10 hover:text-brand-600 active:scale-90 dark:text-gray-400 dark:hover:text-brand-300"
     >
       {icon}
