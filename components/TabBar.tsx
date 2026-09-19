@@ -1,21 +1,24 @@
 "use client";
 
-import { FileText, Image as ImageIcon, Mic, FileUp, Link2, PenTool } from "lucide-react";
+import { FileText, Mic, FileUp, Link2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
 
-const TABS = [
+export type TabId = "text" | "voice" | "doc" | "link";
+
+const TABS: { id: TabId; label: string; icon: any }[] = [
   { id: "text", label: "متن", icon: FileText },
   { id: "voice", label: "صدا", icon: Mic },
-  { id: "image", label: "تصویر", icon: ImageIcon },
   { id: "doc", label: "سند", icon: FileUp },
   { id: "link", label: "لینک", icon: Link2 },
-  { id: "handwrite", label: "دست‌خط", icon: PenTool },
 ];
 
-export default function TabBar() {
-  const [active, setActive] = useState("text");
-
+export default function TabBar({
+  active,
+  onChange,
+}: {
+  active: TabId;
+  onChange: (id: TabId) => void;
+}) {
   return (
     <div className="mx-auto mt-6 flex max-w-2xl flex-wrap items-center justify-center gap-1 rounded-2xl bg-white/50 p-1.5 backdrop-blur-xl dark:bg-white/5">
       {TABS.map((tab) => {
@@ -24,7 +27,7 @@ export default function TabBar() {
         return (
           <button
             key={tab.id}
-            onClick={() => setActive(tab.id)}
+            onClick={() => onChange(tab.id)}
             className="relative flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition"
           >
             {isActive && (

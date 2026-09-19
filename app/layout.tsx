@@ -41,6 +41,28 @@ export default function RootLayout({
                   if (isDark) {
                     document.documentElement.classList.add('dark');
                   }
+                  
+                  // بارگذاری تنظیمات
+                  var settings = localStorage.getItem('wajex-settings');
+                  if (settings) {
+                    var s = JSON.parse(settings);
+                    // اعمال تم
+                    if (s.theme === 'auto') {
+                      document.documentElement.classList.toggle('dark', prefersDark);
+                    } else if (s.theme) {
+                      document.documentElement.classList.toggle('dark', s.theme === 'dark');
+                    }
+                    // اعمال اندازه فونت
+                    if (s.fontSize) {
+                      document.documentElement.classList.add('font-' + s.fontSize);
+                    }
+                    // اعمال شفافیت
+                    if (s.glassOpacity) {
+                      document.documentElement.style.setProperty('--glass-opacity', s.glassOpacity);
+                    }
+                  } else {
+                    document.documentElement.classList.add('font-medium');
+                  }
                 } catch (e) {}
               })();
             `,

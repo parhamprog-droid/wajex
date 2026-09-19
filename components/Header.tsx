@@ -3,6 +3,7 @@
 import { Moon, Sun, Clock, Bookmark, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import HistoryPanel from "./HistoryPanel";
+import SettingsPanel from "./SettingsPanel";
 import type { TranslationItem } from "@/lib/db";
 
 export default function Header({
@@ -14,12 +15,14 @@ export default function Header({
   const [mounted, setMounted] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<"all" | "saved">("all");
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // بارگذاری تم از localStorage
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("wajex-theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
     const isDark = saved ? saved === "dark" : prefersDark;
     setDark(isDark);
     document.documentElement.classList.toggle("dark", isDark);
@@ -69,7 +72,11 @@ export default function Header({
               label="تم"
               onClick={toggleTheme}
             />
-            <IconBtn icon={<Settings size={18} />} label="تنظیمات" />
+            <IconBtn
+              icon={<Settings size={18} />}
+              label="تنظیمات"
+              onClick={() => setSettingsOpen(true)}
+            />
           </nav>
         </div>
       </header>
@@ -79,6 +86,11 @@ export default function Header({
         onClose={() => setHistoryOpen(false)}
         onSelect={(item) => onSelectHistory?.(item)}
         initialFilter={historyFilter}
+      />
+
+      <SettingsPanel
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
       />
     </>
   );

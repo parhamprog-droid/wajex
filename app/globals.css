@@ -111,3 +111,31 @@ html {
 html.dark {
   color-scheme: dark !important;
 }
+/* ====== Font Sizes ====== */
+:root {
+  --glass-opacity: 0.75;
+}
+
+.font-small textarea,
+.font-small input {
+  font-size: 0.9rem !important;
+}
+
+.font-medium textarea,
+.font-medium input {
+  font-size: 1.125rem !important;
+}
+
+.font-large textarea,
+.font-large input {
+  font-size: 1.35rem !important;
+}
+
+/* ====== Glass with opacity variable ====== */
+.glass {
+  background: rgba(255, 255, 255, var(--glass-opacity)) !important;
+}
+
+.dark .glass {
+  background: rgba(20, 20, 35, var(--glass-opacity)) !important;
+}
