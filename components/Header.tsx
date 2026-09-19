@@ -13,6 +13,7 @@ export default function Header({
   const [dark, setDark] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<"all" | "saved">("all");
 
   // بارگذاری تم از localStorage
   useEffect(() => {
@@ -24,7 +25,6 @@ export default function Header({
     document.documentElement.classList.toggle("dark", isDark);
   }, []);
 
-  // تغییر تم
   const toggleTheme = () => {
     const newDark = !dark;
     setDark(newDark);
@@ -51,9 +51,19 @@ export default function Header({
             <IconBtn
               icon={<Clock size={18} />}
               label="تاریخچه"
-              onClick={() => setHistoryOpen(true)}
+              onClick={() => {
+                setHistoryFilter("all");
+                setHistoryOpen(true);
+              }}
             />
-            <IconBtn icon={<Bookmark size={18} />} label="ذخیره‌شده" />
+            <IconBtn
+              icon={<Bookmark size={18} />}
+              label="ذخیره‌شده‌ها"
+              onClick={() => {
+                setHistoryFilter("saved");
+                setHistoryOpen(true);
+              }}
+            />
             <IconBtn
               icon={mounted && dark ? <Sun size={18} /> : <Moon size={18} />}
               label="تم"
@@ -68,6 +78,7 @@ export default function Header({
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
         onSelect={(item) => onSelectHistory?.(item)}
+        initialFilter={historyFilter}
       />
     </>
   );

@@ -9,11 +9,17 @@ import {
   Copy,
   Volume2,
   Bookmark,
+  BookmarkCheck,
   Check,
 } from "lucide-react";
 import LanguageSelector from "./LanguageSelector";
 import SwapButton from "./SwapButton";
-import { addTranslation, type TranslationItem } from "@/lib/db";
+import {
+  addTranslation,
+  findByContent,
+  toggleSavedByContent,
+  type TranslationItem,
+} from "@/lib/db";
 
 export default function TranslatorCard({
   prefill,
@@ -26,6 +32,7 @@ export default function TranslatorCard({
   const [output, setOutput] = useState(prefill?.output ?? "");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -35,6 +42,7 @@ export default function TranslatorCard({
   useEffect(() => {
     if (!input.trim()) {
       setOutput("");
+      setIsSaved(false);
       return;
     }
 
@@ -49,7 +57,26 @@ export default function TranslatorCard({
     };
   }, [input, sourceLang, targetLang]);
 
-  // ذخیره در تاریخچه بعد از ۳ ثانیه بی‌کاری + حداقل ۵ حرف
+  // چک کن آیا این ترجمه ذخیره شده یا نه
+  useEffect(() => {
+    if (!input.trim() || !output || output.startsWith("❌")) {
+      setIsSaved(false);
+      return;
+    }
+
+    let cancelled = false;
+    findByContent(sourceLang, targetLang, input.trim()).then((item) => {
+      if (!cancelled) {
+        setIsSaved(item?.saved ?? false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [input, output, sourceLang, targetLang]);
+
+  // ذخیره خودکار در تاریخچه بعد از ۳ ثانیه بی‌کاری
   useEffect(() => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
 
@@ -59,8 +86,18 @@ export default function TranslatorCard({
     saveTimerRef.current = setTimeout(async () => {
       const cacheKey = `${sourceLang}|${targetLang}|${input}`;
       if (cacheKey === lastSavedRef.current) return;
-      lastSavedRef.current = cacheKey;
 
+      const existing = await findByContent(
+        sourceLang,
+        targetLang,
+        input.trim()
+      );
+      if (existing) {
+        lastSavedRef.current = cacheKey;
+        return;
+      }
+
+      lastSavedRef.current = cacheKey;
       await addTranslation({
         sourceLang,
         targetLang,
@@ -133,6 +170,36 @@ export default function TranslatorCard({
     window.speechSynthesis.speak(utter);
   };
 
+  // دکمه ذخیره — با لاگ
+  const handleToggleSave = async () => {
+    console.log("🔖 Bookmark clicked!");
+    console.log("input:", input);
+    console.log("output:", output);
+    console.log("isSaved:", isSaved);
+
+    if (!input.trim()) {
+      console.log("❌ input خالیه");
+      return;
+    }
+    if (!output || output.startsWith("❌")) {
+      console.log("❌ output خالیه یا خطا داره");
+      return;
+    }
+
+    try {
+      const newSaved = await toggleSavedByContent(
+        sourceLang,
+        targetLang,
+        input.trim(),
+        output
+      );
+      console.log("✅ newSaved:", newSaved);
+      setIsSaved(newSaved);
+    } catch (err) {
+      console.error("❌ خطا در ذخیره:", err);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -185,7 +252,17 @@ export default function TranslatorCard({
                 label="بلندگو"
                 onClick={speakOutput}
               />
-              <IconBtn icon={<Bookmark size={17} />} label="ذخیره" />
+              <IconBtn
+                icon={
+                  isSaved ? (
+                    <BookmarkCheck size={17} className="text-brand-500" />
+                  ) : (
+                    <Bookmark size={17} />
+                  )
+                }
+                label={isSaved ? "حذف از ذخیره" : "ذخیره"}
+                onClick={handleToggleSave}
+              />
             </>
           }
         />

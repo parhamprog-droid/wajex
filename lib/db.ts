@@ -107,7 +107,7 @@ export async function clearAllTranslations(): Promise<void> {
   });
 }
 
-// toggle ذخیره‌شده
+// toggle ذخیره‌شده (با id)
 export async function toggleSaved(id: string): Promise<void> {
   const db = await openDB();
 
@@ -130,4 +130,57 @@ export async function toggleSaved(id: string): Promise<void> {
 
     getReq.onerror = () => reject(getReq.error);
   });
+}
+
+// پیدا کردن ترجمه بر اساس محتوا
+export async function findByContent(
+  sourceLang: string,
+  targetLang: string,
+  input: string
+): Promise<TranslationItem | null> {
+  const all = await getAllTranslations();
+  return (
+    all.find(
+      (item) =>
+        item.sourceLang === sourceLang &&
+        item.targetLang === targetLang &&
+        item.input === input
+    ) || null
+  );
+}
+
+// toggle ذخیره‌شده بر اساس محتوا (اگه نبود، می‌سازه)
+export async function toggleSavedByContent(
+  sourceLang: string,
+  targetLang: string,
+  input: string,
+  output: string
+): Promise<boolean> {
+  const existing = await findByContent(sourceLang, targetLang, input);
+
+  if (existing) {
+    await toggleSaved(existing.id);
+    return !existing.saved;
+  } else {
+    // اگه وجود نداره، بساز و ذخیره‌ش کن
+    const db = await openDB();
+    const newItem: TranslationItem = {
+      id: crypto.randomUUID(),
+      sourceLang,
+      targetLang,
+      input,
+      output,
+      createdAt: Date.now(),
+      saved: true,
+    };
+
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.add(newItem);
+
+      req.onsuccess = () => resolve(true);
+      req.onerror = () => reject(req.error);
+    });
+  }
 }

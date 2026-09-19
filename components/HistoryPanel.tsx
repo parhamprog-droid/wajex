@@ -22,13 +22,15 @@ export default function HistoryPanel({
   open,
   onClose,
   onSelect,
+  initialFilter = "all",
 }: {
   open: boolean;
   onClose: () => void;
   onSelect: (item: TranslationItem) => void;
+  initialFilter?: "all" | "saved";
 }) {
   const [items, setItems] = useState<TranslationItem[]>([]);
-  const [filter, setFilter] = useState<"all" | "saved">("all");
+  const [filter, setFilter] = useState<"all" | "saved">(initialFilter);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -36,8 +38,9 @@ export default function HistoryPanel({
   useEffect(() => {
     if (open) {
       loadItems();
+      setFilter(initialFilter);
     }
-  }, [open]);
+  }, [open, initialFilter]);
 
   const loadItems = async () => {
     setLoading(true);
